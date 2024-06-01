@@ -3,20 +3,21 @@
 # Python version: 3.6
 
 import matplotlib
+
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import copy
+
+import matplotlib.pyplot as plt
 import numpy as np
-from torchvision import datasets, transforms
 import torch
+from torchvision import datasets, transforms
 
-from utils.sampling import mnist_iid, mnist_noniid, cifar_iid
-from utils.options import args_parser
-from models.Update import LocalUpdate
-from models.Nets import MLP, CNNMnist, CNNCifar
 from models.Fed import FedAvg
+from models.Nets import MLP, CNNCifar, CNNMnist
 from models.test import test_img
-
+from models.Update import LocalUpdate
+from utils.options import args_parser
+from utils.sampling import cifar_iid, mnist_iid, mnist_noniid
 
 if __name__ == '__main__':
     # parse args
@@ -26,8 +27,8 @@ if __name__ == '__main__':
     # load dataset and split users
     if args.dataset == 'mnist':
         trans_mnist = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
-        dataset_train = datasets.MNIST('../data/mnist/', train=True, download=True, transform=trans_mnist)
-        dataset_test = datasets.MNIST('../data/mnist/', train=False, download=True, transform=trans_mnist)
+        dataset_train = datasets.MNIST('data/mnist/', train=True, download=True, transform=trans_mnist)
+        dataset_test = datasets.MNIST('data/mnist/', train=False, download=True, transform=trans_mnist)
         # sample users
         if args.iid:
             dict_users = mnist_iid(dataset_train, args.num_users)
@@ -35,8 +36,8 @@ if __name__ == '__main__':
             dict_users = mnist_noniid(dataset_train, args.num_users)
     elif args.dataset == 'cifar':
         trans_cifar = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        dataset_train = datasets.CIFAR10('../data/cifar', train=True, download=True, transform=trans_cifar)
-        dataset_test = datasets.CIFAR10('../data/cifar', train=False, download=True, transform=trans_cifar)
+        dataset_train = datasets.CIFAR10('data/cifar', train=True, download=True, transform=trans_cifar)
+        dataset_test = datasets.CIFAR10('data/cifar', train=False, download=True, transform=trans_cifar)
         if args.iid:
             dict_users = cifar_iid(dataset_train, args.num_users)
         else:
@@ -71,7 +72,7 @@ if __name__ == '__main__':
     best_loss = None
     val_acc_list, net_list = [], []
 
-    if args.all_clients: 
+    if args.all_clients:
         print("Aggregation over all clients")
         w_locals = [w_glob for i in range(args.num_users)]
     for iter in range(args.epochs):
@@ -111,4 +112,3 @@ if __name__ == '__main__':
     acc_test, loss_test = test_img(net_glob, dataset_test, args)
     print("Training accuracy: {:.2f}".format(acc_train))
     print("Testing accuracy: {:.2f}".format(acc_test))
-
